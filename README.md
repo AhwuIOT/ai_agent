@@ -92,6 +92,8 @@ faster-whisper
 requests
 playsound
 opencc-python-reimplemented
+keyboard
+pygobject
 ```
 
 ---
