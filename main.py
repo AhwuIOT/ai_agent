@@ -1,0 +1,35 @@
+from record import record_audio, play_sound
+from speech2text import transcribe_audio
+from llm_handler import match_intent
+from data_storage import tool_speech_to_text
+from count_people import capture_and_count_people
+def main():
+    print("🎧 語音助理已啟動，按 Enter 開始一次錄音，Ctrl+C 離開")
+    while True:
+        try:
+            input("\n🔘 按 Enter 錄音...")
+            audio_path = record_audio()
+            text = transcribe_audio(audio_path)
+            intent = match_intent(text, mode="instruction")
+            print("🧠 語意判斷結果：", intent)
+
+            if intent == "play_sound":
+                play_sound()
+            elif intent == "record":
+                print("🗣️ 偵測到錄音指令，可觸發錄音流程")
+                tool_speech_to_text()
+            elif intent == "camera":
+                print("📸 偵測到鏡頭指令，可執行影像處理流程")
+                capture_and_count_people()
+            else:
+                print("❓ 無法判斷語意")
+
+        except KeyboardInterrupt:
+            print("\n👋 已離開語音助理")
+            break
+        except Exception as e:
+            print(f"❌ 發生錯誤：{e}")
+
+if __name__ == "__main__": 
+    main()
+

@@ -1,0 +1,4 @@
+images/*
+recordings/*
+.env
+__pycache__/*

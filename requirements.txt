@@ -1,0 +1,12 @@
+sounddevice
+playsound
+vosk
+opencc
+python-dotenv
+requests
+keyboard
+faster-whisper
+boto3
+numpy
+scipy
+opencv-python
