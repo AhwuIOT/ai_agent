@@ -1,8 +1,8 @@
-from record import record_audio, play_sound
-from speech2text import transcribe_audio
-from llm_handler import match_intent
-from data_storage import tool_speech_to_text
-from count_people import capture_and_count_people
+from src.record import record_audio, play_sound
+from src.speech2text import transcribe_audio
+from src.llm_handler import match_intent
+from src.data_storage import tool_speech_to_text
+from src.count_people import capture_and_count_people
 def main():
     print("🎧 語音助理已啟動，按 Enter 開始一次錄音，Ctrl+C 離開")
     while True:

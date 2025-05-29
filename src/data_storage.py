@@ -6,9 +6,9 @@ import os
 from dotenv import load_dotenv
 import boto3
 from datetime import datetime
-from llm_handler import match_intent
+from .llm_handler import match_intent
 import keyboard
-from speech2text import transcribe_audio
+from .speech2text import transcribe_audio
 # 載入 AWS 設定
 load_dotenv()
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY_ID")
@@ -68,8 +68,8 @@ def tool_speech_to_text():
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write(refined_text)
 
-    # upload_to_s3(audio_path, f"record/{os.path.basename(audio_path)}")
-    # upload_to_s3(txt_path, f"record/{os.path.basename(txt_path)}")
+    upload_to_s3(audio_path, f"record/{os.path.basename(audio_path)}")
+    upload_to_s3(txt_path, f"record/{os.path.basename(txt_path)}")
 
 if __name__ == "__main__":
     tool_speech_to_text()
