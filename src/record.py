@@ -30,4 +30,3 @@ def record_audio(file_path="recordings/record.wav", duration=5, samplerate=16000
     wav.write(file_path, samplerate, audio)
     print("✅ 錄音完成：", file_path)
     return file_path
-
