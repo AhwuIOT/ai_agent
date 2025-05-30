@@ -5,6 +5,10 @@ from rq import SimpleWorker, Queue, Connection
 from rq.timeouts import BaseDeathPenalty
 import redis
 
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 class DummyDeathPenalty(BaseDeathPenalty):
     def setup_death_penalty(self):
         pass

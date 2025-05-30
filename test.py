@@ -1,45 +1,50 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from rq import Queue
-import redis
-import requests
+from fastapi.testclient import TestClient
+from llm_server import api_server
+import os
+import time
 
-app = FastAPI()
+client = TestClient(api_server.app)
 
-# Redis 設定
-redis_conn = redis.Redis(host="localhost", port=16379, db=0)
-q = Queue("model_job_queue", connection=redis_conn)
+def send_transcribe_job(audio_path):
+    assert os.path.exists(audio_path), f"檔案不存在：{audio_path}"
+    with open(audio_path, "rb") as audio_file:
+        files = {"audio": ("record.wav", audio_file, "audio/wav")}
+        response = client.post("/transcribe", files=files)
+    res_json = response.json()
+    print("📤 音檔送出回應：", res_json)
+    return res_json["job_id"]
 
-# 輸入模型格式
-class PromptRequest(BaseModel):
-    prompt: str
-
-# 呼叫 LMStudio 的函數
-def call_lmstudio(prompt):
-    url = "http://localhost:1234/v1/chat/completions"
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "model": "google/gemma-3-12b",
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.7
+def send_llm_job(image_path):
+    assert os.path.exists(image_path), f"圖片不存在：{image_path}"
+    payload = {
+        "text": image_path,
+        "mode": "count_people"
     }
-    res = requests.post(url, headers=headers, json=data)
-    return res.json()["choices"][0]["message"]["content"]
+    response = client.post("/ask", json=payload)
+    res_json = response.json()
+    print("📤 圖片分析任務送出：", res_json)
+    return res_json["job_id"]
 
-# 建立任務
-@app.post("/ask")
-def ask_model(req: PromptRequest):
-    job = q.enqueue(call_lmstudio, req.prompt)
-    return {"job_id": job.id}
+def wait_for_result(job_id, timeout_sec=15):
+    for _ in range(timeout_sec):
+        res = client.get(f"/result/{job_id}").json()
+        status = res["status"]
+        print(f"🔍 任務狀態：{status}")
+        if status == "done":
+            return res["result"]
+        elif status == "failed":
+            raise RuntimeError("❌ 任務執行失敗")
+        time.sleep(1)
+    raise TimeoutError("⌛ 任務逾時未完成")
 
-# 查詢結果
-@app.get("/result/{job_id}")
-def get_result(job_id: str):
-    job = q.fetch_job(job_id)
-    if job is None:
-        return {"status": "not_found"}
-    elif job.is_finished:
-        return {"status": "done", "result": job.result}
-    elif job.is_failed:
-        return {"status": "failed"}
-    return {"status": "processing"}
+# 🚀 主程式測試
+if __name__ == "__main__":
+    # ✅ 1. 測試語音轉文字 + 修辭
+    audio_job_id = send_transcribe_job("recordings/record_20250529_173349.wav")
+    audio_result = wait_for_result(audio_job_id)
+    print("📝 語音最終文字結果：", audio_result)
+
+    # ✅ 2. 測試圖片人數辨識
+    image_job_id = send_llm_job("images/20250529_214712.jpg")
+    image_result = wait_for_result(image_job_id)
+    print("🧍‍♂️ 圖片人數分析結果：", image_result)

@@ -1,4 +1,7 @@
 import os
+import sys
+
+sys.path.append(os.path.abspath("."))
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 from rq import SimpleWorker, Queue, Connection
