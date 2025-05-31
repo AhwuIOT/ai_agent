@@ -9,8 +9,8 @@ def main():
         try:
             input("\n🔘 按 Enter 錄音...")
             audio_path = record_audio()
-            text = instruct_speech_to_text(audio_path)
-            intent = match_intent(text, mode="instruction")
+            intent = instruct_speech_to_text(audio_path)
+        
             print("🧠 語意判斷結果：", intent)
 
             if intent == "play_sound":

@@ -62,11 +62,11 @@ def tool_speech_to_text():
 
     record_audio(audio_path)
     text = transcribe_with_faster_whisper(audio_path)
-    refined_text = match_intent(text, mode="long_speech")
-    print("📝 經過LLM後的文字：", refined_text)
+    # refined_text = match_intent(text, mode="long_speech")
+    print("📝 經過LLM後的文字：", text)
 
     with open(txt_path, "w", encoding="utf-8") as f:
-        f.write(refined_text)
+        f.write(text)
 
     upload_to_s3(audio_path, f"record/{os.path.basename(audio_path)}")
     upload_to_s3(txt_path, f"record/{os.path.basename(txt_path)}")

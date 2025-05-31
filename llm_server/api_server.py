@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException,Form
 from rq import Queue
 import redis
 import os
@@ -48,40 +48,49 @@ async def handle_audio(audio: UploadFile = File(...)):
 #     job = model_queue.enqueue(call_lmstudio_job, req.model_dump())
 #     return {"job_id": job.get_id(), "type": "lmstudio"}
 
-from fastapi import UploadFile, File, Form, HTTPException
+
 
 @app.post("/ask")
 async def ask_model_v2(
     mode: str = Form("count_people"),  # 預設就是 count_people
-    image: UploadFile = File(None)
+    image: UploadFile = File(None),
+    text: str = Form("")
 ):
     if mode == "count_people" and image is None:
         return {
             "status": "skipped",
             "reason": "🛑 預設模式為 count_people，但沒有提供圖片，因此已跳過任務"
         }
+    else:
+        image_path = None
+        if image:
+            if image.content_type not in ["image/jpeg", "image/png"]:
+                raise HTTPException(status_code=400, detail="❌ 不支援的圖片格式")
 
-    image_path = None
-    if image:
-        if image.content_type not in ["image/jpeg", "image/png"]:
-            raise HTTPException(status_code=400, detail="❌ 不支援的圖片格式")
+            os.makedirs("uploads", exist_ok=True)
+            filename = f"{uuid.uuid4().hex}.jpg"
+            image_path = os.path.join("uploads", filename)
 
-        os.makedirs("uploads", exist_ok=True)
-        filename = f"{uuid.uuid4().hex}.jpg"
-        image_path = os.path.join("uploads", filename)
+            content = await image.read()
+            with open(image_path, "wb") as f:
+                f.write(content)
 
-        content = await image.read()
-        with open(image_path, "wb") as f:
-            f.write(content)
+            print(f"✅ 已儲存圖片檔：{image_path}")
 
-        print(f"✅ 已儲存圖片檔：{image_path}")
+        request_payload = {
+            "text": image_path if image_path else "",
+            "mode": mode
+        }
 
-    request_payload = {
-        "text": image_path if image_path else "",
-        "mode": mode
-    }
+        job = model_queue.enqueue(call_lmstudio_job, request_payload)
+        
+    if mode == "instruction":
+        request_payload = {
+            "text": text if text else "",
+            "mode": mode
+        }
 
-    job = model_queue.enqueue(call_lmstudio_job, request_payload)
+        job = model_queue.enqueue(call_lmstudio_job, request_payload)
     return {"job_id": job.get_id(), "type": "lmstudio"}
 
 # --------- 共用查詢任務結果 API ---------
