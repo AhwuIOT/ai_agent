@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import time
 load_dotenv()
 URL = os.getenv("API_URL") 
-print("🔗 API URL:", URL)
 # 初始化 Faster-Whisper 模型
 # model = WhisperModel("base", device="cpu", compute_type="int8")  
 

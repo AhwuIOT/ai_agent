@@ -38,7 +38,7 @@ def poll_result(job_id):
     print(f"⏰ 超時：{job_id}")
 
 def capture_and_count_people():
-    file_path = capture_image_from_ffmpeg(camera_name="USB2.0 PC CAMERA", save_dir="images")
+    file_path = capture_image_from_ffmpeg()
     send_llm(file_path)
     job_id = send_llm(file_path)
     if job_id:  

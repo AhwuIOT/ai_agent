@@ -25,7 +25,7 @@ def normalize(text):
 # 錄音 5 秒並儲存成 wav 檔
 def record_audio(file_path="recordings/record.wav", duration=5, samplerate=16000):
     print("🎙️ 開始錄音...")
-    audio = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16')
+    audio = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16', device=1)
     sd.wait()
     wav.write(file_path, samplerate, audio)
     print("✅ 錄音完成：", file_path)

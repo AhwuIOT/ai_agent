@@ -1,6 +1,5 @@
 from src.record import record_audio, play_sound
-from src.speech2text import transcribe_audio, instruct_speech_to_text
-from src.llm_handler import match_intent
+from src.speech2text import instruct_speech_to_text
 from src.data_storage import tool_speech_to_text
 from src.count_people import capture_and_count_people
 def main():
@@ -32,4 +31,3 @@ def main():
 
 if __name__ == "__main__": 
     main()
-
