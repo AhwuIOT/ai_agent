@@ -40,7 +40,7 @@ def wait_for_result(job_id, timeout_sec=15):
 # 🚀 主程式測試
 if __name__ == "__main__":
     # ✅ 1. 測試語音轉文字 + 修辭
-    audio_job_id = send_transcribe_job("recordings/record_20250529_173349.wav")
+    audio_job_id = send_transcribe_job("recordings/test.mp3")
     audio_result = wait_for_result(audio_job_id)
     print("📝 語音最終文字結果：", audio_result)
 

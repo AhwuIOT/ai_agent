@@ -48,10 +48,12 @@ def call_lmstudio(req: LLMRequest):
             }
             response = requests.post(url=url, headers=headers, json=data)
             result = response.json()
-            return result["choices"][0]["message"]["content"].strip()
+            result = result["choices"][0]["message"]["content"].strip()
+            return result
         except Exception as e:
             print(f"❌ long_speech 模式失敗：{e}")
             return "error"
+        
     
     elif req.mode == "count_people":
         try:
@@ -73,11 +75,23 @@ def call_lmstudio(req: LLMRequest):
                     "max_tokens": req.max_tokens,
                     "stream": False
                 }
+                
                 response = requests.post(url, headers=headers, data=json.dumps(payload))
-                return response.json()["choices"][0]["message"]["content"].strip()
+
+                result = response.json()["choices"][0]["message"]["content"].strip()
+                
+                return result
         except Exception as e:
             print(f"❌ count_people 模式失敗：{e}")
             return "error"
+        finally:
+            if os.path.exists(req.text):
+                try:
+                    os.remove(req.text)
+                    print(f"🗑️ 已刪除檔案：{req.text}")
+                except Exception as e:
+                    print(f"⚠️ 刪除失敗：{e}")
+            
 
     return "unknown"
 
