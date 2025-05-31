@@ -1,5 +1,5 @@
 from faster_whisper import WhisperModel
-from llm_handler import call_lmstudio, LLMRequest
+from .llm_handler import call_lmstudio, LLMRequest
 import os
 from opencc import OpenCC
 from pydub import AudioSegment

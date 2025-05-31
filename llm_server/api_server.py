@@ -19,6 +19,9 @@ transcribe_queue = Queue("transcribe", connection=redis_conn)
 model_queue = Queue("model_job_queue", connection=redis_conn)
 
 
+
+
+
 # --------- 音檔上傳 + 語音辨識任務 ---------
 @app.post("/transcribe")
 async def handle_audio(audio: UploadFile = File(...)):
