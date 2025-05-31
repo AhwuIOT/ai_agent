@@ -35,10 +35,10 @@ def clean_jobs():
         print(f"✅ 清理完成：{queue_name}，處理 {len(job_ids)} 筆完成任務")
 
 # 每 10 分鐘跑一次
-schedule.every(10).minutes.do(clean_jobs)
+# schedule.every(10).minutes.do(clean_jobs)
 
-print("🚀 Redis 任務清理器已啟動，每 1 分鐘掃描一次")
+# print("🚀 Redis 任務清理器已啟動，每 1 分鐘掃描一次")
 
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+clean_jobs()
+    # schedule.run_pending()
+    # time.sleep(1)
