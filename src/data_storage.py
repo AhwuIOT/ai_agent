@@ -6,7 +6,6 @@ import os
 from dotenv import load_dotenv
 import boto3
 from datetime import datetime
-from .llm_handler import match_intent
 import keyboard
 from .speech2text import transcribe_audio
 # 載入 AWS 設定

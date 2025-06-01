@@ -1,6 +1,6 @@
-# 🧠 AI Agent Assistant (Windows 版本)
+# 🧠 AI Agent Assistant (Raspberry Pi 版本)
 
-這是一個基於語音與影像輸入的 AI Agent 系統，具備三個主要工具，透過語音自然語意輸入即可觸發功能。整合本地語音辨識、語意理解、影像辨識與雲端上傳能力。
+這是一個基於語音與影像輸入的 AI Agent 系統，具備三個主要工具，透過語音自然語意輸入即可觸發功能。整合本地錄音、遠端語音辨識與語意理解、影像辨識與雲端上傳能力。
 
 ---
 
@@ -10,45 +10,44 @@
 
 ### ✅ 三大工具功能：
 
-| 功能名稱      | 語意觸發關鍵字          | 執行說明                       |
-| --------- | ---------------- | -------------------------- |
-| 1. 播放聲音   | 播放聲音、喇叭發聲、嗶一下等   | 播放預設提示音 `audio/beep.wav`   |
-| 2. 語音轉文字  | 語音轉文字、STT、語音輸入等  | 錄音後轉文字，並將音檔 + 文字上傳至 AWS S3 |
-| 3. 鏡頭人數辨識 | 鏡頭中人數、現場人數、拍照辨識等 | 使用攝影機拍照並使用影像模型辨識畫面中人數      |
+| 功能名稱      | 語意觸發關鍵字          | 執行說明                               |
+| --------- | ---------------- | ---------------------------------- |
+| 1. 播放聲音   | 播放聲音、喇叭發聲、嗶一下等   | 播放預設提示音 `audio/beep.wav`           |
+| 2. 語音轉文字  | 語音轉文字、STT、語音輸入等  | 錄音後透過網路傳給伺服器辨識，並將音檔 + 文字上傳至 AWS S3 |
+| 3. 鏡頭人數辨識 | 鏡頭中人數、現場人數、拍照辨識等 | 使用攝影機拍照並透過伺服器模型辨識畫面中人數             |
 
 ---
 
-## 🧠 所使用的 AI Service
+## 🧠 所使用的 AI 服務（部署於伺服器端）
 
-* **語意理解 (LLM)：**
+* **語意理解 (LLM)**：LM Studio + Gemma3 模型（`lmstudio-community/gemma-3-12B-it-qat-GGUF`）
 
-  * 使用者本地端部署 LM Studio，並使用Google的Gemma3模型（`lmstudio-community/gemma-3-12B-it-qat-GGUF`）
-  * API Endpoint: `http://127.0.0.1:1234/v1/chat/completions`
+  * API Endpoint 範例：`http://<伺服器 IP>:1234/v1/chat/completions`
 
-* **語音轉文字 (STT)：**
+* **語音轉文字 (STT)**：Faster-Whisper 模型，部署於伺服器端，以 REST API 提供語音轉文字服務。
 
-  * 使用 `faster-whisper` Python 套件，模型為 `"base"`，運行於 CPU `int8` 模式
-
-* **影像分析 (Vision)：**
-
-  * 使用者本地端部署 LM Studio，並使用 HuggingFace 上的輕量型IBM Granite模型(`ibm-granite_granite-vision-3.2-2b`) 
-    * 將圖片轉為base64後，透過 API傳送至AI模型，並查詢人數，回傳純數字
-    * API Endpoint: `http://127.0.0.1:1234/v1/chat/completions`
+* **影像分析 (Vision)**：LM Studio + IBM Granite 模型（`ibm-granite_granite-vision-3.2-2b`），辨識影像中人數
 
 ---
 
-## 🖥️ 本版本執行環境
-- 軟體
-    * 作業系統：Windows 11 (x64)
-    * Python 版本：3.10+
-    * 必須安裝：
-        * ffmpeg（可執行於命令列）
-        * USB 攝影機（如：Logitech C310）
-        * LMStudio及相關模型
-- 硬體
-    * 處理器：i7-14700
-    * GPU：Nvidia super 4080 16GB
-    * RAM：64GB
+## 🖥️ 執行環境
+
+* 軟體（Raspberry Pi 上）
+
+  * 作業系統：Raspberry Pi OS / Debian
+  * Python：3.10+
+  * 必須安裝：
+
+    * ffmpeg（命令列可執行）
+    * USB 攝影機（如：Logitech C310）
+    * requests, boto3 等相關 Python 套件
+
+* 硬體（Raspberry Pi）
+
+  * Raspberry Pi 4 或以上
+  * USB 麥克風 / 攝影機
+  * 建議搭配伺服器執行 Heavy AI 模型
+
 ---
 
 ## 📁 專案結構
@@ -66,11 +65,9 @@ project_root/
 |   |   capture_photo.py    # 使用 ffmpeg 拍照
 |   |   count_people.py     # 拍照後辨識人數
 |   |   data_storage.py     # 錄音 + 上傳至 AWS + 文字生成流程
-|   |   llm_handler.py      # 語意分析與圖片模型 API 整合
 |   |   record.py           # 播放聲音、簡易錄音模組
-|   |   speech2text.py      # 使用 Faster-Whisper 轉換語音文字
+|   |   speech2text.py      # 使用 REST API 傳送至伺服器轉文字
 |___|   __init__.py
-
 ```
 
 ---
@@ -88,46 +85,36 @@ sounddevice
 scipy
 python-dotenv
 boto3
-faster-whisper
 requests
 playsound
 opencc-python-reimplemented
 keyboard
-pygobject
 ```
 
 ---
 
-## ⚙️ .env 設定（自行設定，記得添加於.gitignore中）
+## ⚙️ .env 設定
 
 ```env
 AWS_ACCESS_KEY_ID=""
 AWS_SECRET_ACCESS_KEY=""
 AWS_REGION="ap-northeast-1"
 S3_BUCKET_NAME=""
-CAMERA_NAME="USB2.0 PC CAMERA"
+API_URL="http://<伺服器 IP>"
 ```
+
+請將 `<伺服器 IP>` 替換成實際提供 LM Studio 與 STT API 的機器 IP。
 
 ---
 
-## 🧪 操作指引（使用者流程）
+## 🧪 操作流程
 
-1. 📦 安裝套件並設定 .env
-2. 確保你已安裝好所有依賴套件與 ffmpeg
-3. 填寫 .env 中的 AWS 與攝影機參數
-4. 🧠 開啟 LM Studio 
-5. 載入 Gemma3 及 IBM Granite模型 並啟動 API 伺服器
-6. ▶️ 啟動系統`python main.py`
-7. 出現提示訊息後，按下`Enter`錄音
-8. 錄音完成後，系統會自動語意分類並執行對應工具
-9. 🗣️ 語音範例
-10. 「播放聲音」👉 喇叭發聲
-
-    「語音轉文字」👉 按下`c`錄音 + 上傳 S3
-
-    「鏡頭中人數」👉 拍照 + 回傳人數
-
-11. 🔚 結束程式`可隨時按下 Ctrl+C 結束程式`
+1. 📦 安裝套件並設定 `.env`
+2. 確保 Raspberry Pi 能連到伺服器 IP
+3. 填寫 `.env` 中 AWS 與 API\_URL 參數
+4. ▶️ 啟動系統：`python main.py`
+5. 📣 出現提示後按 `Enter` 開始錄音
+6. 🧠 系統會自動語意分析並執行對應功能
 
 ---
 
@@ -137,22 +124,18 @@ CAMERA_NAME="USB2.0 PC CAMERA"
 python main.py
 ```
 
-啟動後會等待你語音輸入指令。
-
 ---
-
 
 ## ⚠️ 注意事項
 
-- 🎤 麥克風裝置：系統會自動使用作業系統預設麥克風。若預設裝置無法正常錄音，請至音效設定確認。
+* 🎤 麥克風使用 Raspberry Pi 預設裝置，請確認錄音功能正常
+* 📷 攝影機可使用 `/dev/video0`，支援 V4L2 且需支援 ffmpeg
+* 🧠 所有 LLM 與 Faster-Whisper 模型需先在伺服器上啟動，並確認 API 可用
+* 📡 Raspberry Pi 僅作為前端控制節點，將資料透過網路送往伺服器分析
 
-- 📷 攝影機名稱必須正確：請在 .env 檔中設定 CAMERA_NAME，可透過 ffmpeg -list_devices true -f dshow -i dummy 查詢可用裝置。
-
-- 🧠 本地 LLM API 須先啟動：請先開啟 LM Studio 並確認其模型部署與 API 服務正常運行。
-
-- ☁️ S3 權限需開啟寫入權限：請確認 .env 中的金鑰與 bucket 有上傳權限。
+---
 
 ## 💡 下一步
-1. 移植RaspberryPi
-2. 使用Gradio製作介面
-3. 多用戶高併發服務設計
+
+1. 整合 Gradio 或 Streamlit 製作簡易網頁介面
+2. 自動化部署與監控模組
